@@ -7,3 +7,7 @@
 *.class
 *.log
 *.tmp
+
+.classpath
+.project
+.settings/
