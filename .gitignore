@@ -1,0 +1,9 @@
+/.apt_generated
+/.gradle
+/bin
+/build
+
+*.bak
+*.class
+*.log
+*.tmp
