@@ -27,10 +27,10 @@ public class ToStringProcessor extends TypeProcessor {
 		final Set<String> explicitlyIncludedNames = collected
 				.stream()
 				.filter(e -> e.getAnnotation(ToString.Include.class) != null)
-				.map(this::toSimpleName)
+				.map(this::toDisplayName)
 				.collect(Collectors.toSet());
 		return collected.stream()
-				.filter(e -> !explicitlyIncludedNames.contains(toSimpleName(e)) || e.getAnnotation(ToString.Include.class) != null)
+				.filter(e -> !explicitlyIncludedNames.contains(toDisplayName(e)) || e.getAnnotation(ToString.Include.class) != null)
 				.collect(Collectors.toList());
 	}
 
@@ -48,22 +48,21 @@ public class ToStringProcessor extends TypeProcessor {
 				return false;
 			}
 		}
-		if (excludeAnn!=null) {
-			if (includeAnn!=null) raiseError(element, "Combining Include and Exclude on a single element is contradictory.");
+		if (excludeAnn != null) {
+			if (includeAnn != null) raiseError(element, "Combining Include and Exclude on a single element is contradictory.");
 			return false;
 		}
-		if (excludeByDefault && includeAnn==null) return false;
-		if (element instanceof VariableElement) return true;
-		if (includeAnn == null) return false;
+		final boolean includedWhenUnanotated = !excludeByDefault && element instanceof VariableElement;
+
+		if (includeAnn == null) return includedWhenUnanotated;
+
+		//TODO This should generate a warning, but only if the field isn't excluded later by an included equally named method.
+		// if (includedWhenUnanotated && includeAnn.name().isEmpty()) raiseWarning(element, "Needless @ToString.Include");
 		return true;
 	}
 
-	private String toSimpleName(Element element) {
-		return element.getSimpleName().toString();
-	}
-
 	private String errorMessageIfAnnotated(Element element) {
-		if (element.getModifiers().contains(Modifier.STATIC)) return "String doesn't work with a static element.";
+		if (element.getModifiers().contains(Modifier.STATIC)) return "ToString doesn't work with a static element.";
 		if (element instanceof VariableElement) return "";
 		if (element instanceof ExecutableElement) {
 			final ExecutableElement executableElement = (ExecutableElement) element;
@@ -136,13 +135,18 @@ public class ToStringProcessor extends TypeProcessor {
 
 	private void bodyInternal(Element element) {
 		final String s = element instanceof VariableElement ? "Field" : "Method";
-		final String name = element.getSimpleName().toString();
+
 		final String line = "result"
 				+ (isFirst ? "" : ".append(\", \")")
-				+ (toStringAnn.includeFieldNames() ? ".append(\"" + name + "=\")" : "")
-				+ ".append(get" + s + "Value(\"" + name + "\", object));";
+				+ (toStringAnn.includeFieldNames() ? ".append(\"" + toDisplayName(element) + "=\")" : "")
+				+ ".append(get" + s + "Value(\"" + element.getSimpleName().toString() + "\", object));";
 		append(line);
 		isFirst = false;
+	}
+
+	private String toDisplayName(Element element) {
+		final ToString.Include includeAnn = element.getAnnotation(ToString.Include.class);
+		return includeAnn!=null && !includeAnn.name().isEmpty() ? includeAnn.name() : element.getSimpleName().toString();
 	}
 
 	private final boolean excludeByDefault;
