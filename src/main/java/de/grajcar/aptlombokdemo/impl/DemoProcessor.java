@@ -10,6 +10,7 @@ import javax.lang.model.SourceVersion;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.TypeElement;
 
+import de.grajcar.aptlombokdemo.MakeComparable;
 import de.grajcar.aptlombokdemo.ToString;
 
 @SupportedAnnotationTypes("de.grajcar.aptlombokdemo.ToString")
@@ -17,6 +18,7 @@ import de.grajcar.aptlombokdemo.ToString;
 public class DemoProcessor extends AbstractProcessor {
 	@Override public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
 		for (final Element e : roundEnv.getElementsAnnotatedWith(ToString.class)) new ToStringProcessor(processingEnv, (TypeElement) e).process();
+		for (final Element e : roundEnv.getElementsAnnotatedWith(MakeComparable.class)) new MakeComparableProcessor(processingEnv, (TypeElement) e).process();
 		return true;
 	}
 }

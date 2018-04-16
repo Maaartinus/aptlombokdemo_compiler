@@ -73,7 +73,7 @@ public class ToStringProcessor extends TypeProcessor {
 	}
 
 	@Override protected String generatedClassName() {
-		return packageName() + "._" + saneTypeName().replace(".", "_") + "_Demohelper";
+		return packageName() + "._" + saneTypeName().replace(".", "_") + "_ToStringHelper";
 	}
 
 	@Override protected void intro(List<Element> elements) {
